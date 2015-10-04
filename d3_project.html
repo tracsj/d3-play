@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>D3 Page Template</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../d3/d3.v3.js"></script>
+        <link rel="stylesheet" type="text/css" href="/assets/personal.css">
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+
+    </head>
+    <body>
+    <h1> How active has Steve been this year?</h1>
+    <div class="select">
+        DROPDOWN NOT WORKING
+    <select id="opts">
+  <option value="Calories">Calories</option>
+  <option value="Distance">Distance</option>
+  <option value="Elevation">Elevation</option>
+  <option value="Steps">Steps</option>
+</select>
+</div>
+        <script type="text/javascript">
+            //Set up variables
+            var w = 1000;
+            var h = 600;
+            var padding = 20;
+            var dataset;
+
+            
+            //A lot of help glened from here: http://bl.ocks.org/mbostock/3883245
+
+            var generateVis = function() {
+
+            //Parse data
+            var parseDate = d3.time.format("%Y-%m-%d").parse;
+
+            dataset.forEach(function(d) {
+                d.date = parseDate(d.Date); 
+                d.Calories = +d.Calories;
+                }); 
+            
+            var minDate = parseDate("2015-09-01");
+             var maxDate = parseDate("2015-09-26");
+            var maxData = d3.max(dataset, function(d) { return d.Calories; })
+
+            var y = d3.scale.linear()
+                    .domain([maxData,0 ])
+                    .range([0, h - padding]);
+
+            var x = d3.time.scale()
+                    .domain([minDate,maxDate])
+                    .range([0,w]);
+
+
+            //Set up axes
+            var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom")
+            .ticks(5);
+
+            var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
+
+            var line = d3.svg.line()
+                .x(function(d) { return x(d.date); })
+                .y(function(d, i) { return y(d.Calories); })
+
+            var svg = d3.select("body").append("svg")
+                    .attr("width", w)
+                    .attr("height", h)
+                    .append("g")
+
+            var circles = svg.selectAll("circle")
+                    .data(dataset)
+                    .enter()
+                    .append("circle")
+
+            circles.attr("cx", function(d) { return x(d.date); })
+                     .attr("cy", function(d) { return y(d.Calories); })
+                     .attr("r", 5)
+                    .attr("fill", "lightgray")
+                    .attr("stroke", "blue")
+                    .on("mouseover", function(d) {     
+                    div.transition()        
+                    .duration(200)      
+                    .style("opacity", .9);      
+                     div.html(d.Date + "<br/>"  + d.Calories)  
+                    .style("left", (d3.event.pageX) + "px")     
+                    .style("top", (d3.event.pageY - 28) + "px");    
+            })                  
+            .on("mouseout", function(d) {       
+            div.transition()        
+                .duration(500)      
+                .style("opacity", 0);   
+        });
+
+            // Define the div for the tooltip
+            var div = d3.select("body").append("div")   
+                .attr("class", "tooltip")               
+                 .style("opacity", 0);
+
+
+             svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + (h - padding-5) + ")")
+                .call(xAxis);
+
+             svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis)
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 6)
+                .attr("dy", ".71em")
+                .style("text-anchor", "end")
+                .text("Calories");
+                
+             
+             svg.append("path")
+                 .datum(dataset)
+                 .attr("class", "line")
+                 .attr("d", line);
+}
+           
+             // Import data            
+            d3.csv("/assets/activity.csv", function(data) {
+            dataset = data;
+            console.log(data);
+            
+            /* Was trying to make a drop down menu to allow for data updates :)
+            var plots = parseInt(d3.select('#opts').property('value'));
+            
+            d3.select('#opts')
+                .on('change', function() {
+            var plots = d3.select(this).property('value');
+            console.log(plots);
+            generateVis(dataset); 
+            });*/
+
+            generateVis(dataset); 
+                });
+
+            /*
+            0: Object
+            Calories: "280"
+            Date: "2015-09-26"
+            Distance (mi): "3.56"
+            Elevation (ft): "0"
+            Steps: "6497"
+            */
+
+        </script>
+    </body>
+</html>
